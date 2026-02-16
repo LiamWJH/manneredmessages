@@ -71,7 +71,7 @@ def on_key(event):
         return
 
     out = " " if key == "space" else key
-    if drunkmode and len(out) == 1 and out.isalpha() and random.randint(1,3) == 1:
+    if drunkmode and len(out) == 1 and out.isalpha() and random.randint(1,6) == 1:
         out = get_neighbor_key(out)
 
     kb.write(out)
