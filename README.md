@@ -1,4 +1,5 @@
-# mannered-messages
+# drunk-typing
+
 Remove your hope of socializing in miliseconds!
 
 You can also fully configure the style!
