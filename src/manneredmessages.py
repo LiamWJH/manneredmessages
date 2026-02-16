@@ -1,6 +1,5 @@
 import keyboard as kb
-import yaml
-import random
+import yaml, random
 
 with open("config.yaml", "r") as f:
     data = yaml.safe_load(f)
@@ -16,51 +15,34 @@ drunkmode = data["drunkmode"]
 keywords = ["fuck", "shit"]
 
 NEIGHBORS = {
-    "q": ["w", "a"],
-    "w": ["q", "e", "a", "s"],
-    "e": ["w", "r", "s", "d"],
-    "r": ["e", "t", "d", "f"],
-    "t": ["r", "y", "f", "g"],
-    "y": ["t", "u", "g", "h"],
-    "u": ["y", "i", "h", "j"],
-    "i": ["u", "o", "j", "k"],
-    "o": ["i", "p", "k", "l"],
+    "q": ["w", "a"], "w": ["q", "e", "a", "s"], "e": ["w", "r", "s", "d"],
+    "r": ["e", "t", "d", "f"], "t": ["r", "y", "f", "g"], "y": ["t", "u", "g", "h"],
+    "u": ["y", "i", "h", "j"], "i": ["u", "o", "j", "k"], "o": ["i", "p", "k", "l"],
     "p": ["o", "l"],
-    "a": ["q", "w", "s", "z"],
-    "s": ["a", "w", "e", "d", "z", "x"],
-    "d": ["s", "e", "r", "f", "x", "c"],
-    "f": ["d", "r", "t", "g", "c", "v"],
-    "g": ["f", "t", "y", "h", "v", "b"],
-    "h": ["g", "y", "u", "j", "b", "n"],
-    "j": ["h", "u", "i", "k", "n", "m"],
-    "k": ["j", "i", "o", "l", "m"],
-    "l": ["k", "o", "p"],
-    "z": ["a", "s", "x"],
-    "x": ["z", "s", "d", "c"],
-    "c": ["x", "d", "f", "v"],
-    "v": ["c", "f", "g", "b"],
-    "b": ["v", "g", "h", "n"],
-    "n": ["b", "h", "j", "m"],
-    "m": ["n", "j", "k"]
+    "a": ["q", "w", "s", "z"], "s": ["a", "w", "e", "d", "z", "x"], "d": ["s", "e", "r", "f", "x", "c"],
+    "f": ["d", "r", "t", "g", "c", "v"], "g": ["f", "t", "y", "h", "v", "b"], "h": ["g", "y", "u", "j", "b", "n"],
+    "j": ["h", "u", "i", "k", "n", "m"], "k": ["j", "i", "o", "l", "m"], "l": ["k", "o", "p"],
+    "z": ["a", "s", "x"], "x": ["z", "s", "d", "c"], "c": ["x", "d", "f", "v"],
+    "v": ["c", "f", "g", "b"], "b": ["v", "g", "h", "n"], "n": ["b", "h", "j", "m"], "m": ["n", "j", "k"]
 }
 
-def get_neighbor_key(key: str) -> str:
-    key = key.lower()
-    return random.choice(NEIGHBORS.get(key, [key]))
+def get_neighbor_key(k: str) -> str:
+    k = k.lower()
+    return random.choice(NEIGHBORS.get(k, [k]))
 
 sentence_cache = ""
-
 print("good luck mortal")
 
-while True:
-    event = kb.read_event()
+def on_key(event):
+    global sentence_cache
+
     if event.event_type != "down":
-        continue
+        return
 
     key = event.name
 
     if key != "space" and (len(key) > 1):
-        continue
+        return
 
     if random.randint(1, 100) <= schizopercent:
         kb.press_and_release("ctrl+a")
@@ -70,22 +52,23 @@ while True:
             kb.write(random.choice(schizomsg))
             kb.press_and_release("enter")
             sentence_cache = ""
-            continue
+            return
 
         out = " " if key == "space" else key
-        if len(out) == 1 and out.isalpha() and drunkmode:
+        if drunkmode and len(out) == 1 and out.isalpha():
             out = get_neighbor_key(out)
 
         kb.write(out)
         sentence_cache = ""
-        continue
+        return
 
-    key = " " if key == "space" else key
+    out = " " if key == "space" else key
+    if drunkmode and len(out) == 1 and out.isalpha() and random.randint(1,3) == 1:
+        out = get_neighbor_key(out)
 
-    if drunkmode and len(key) == 1 and key.isalpha():
-        key = get_neighbor_key(key)
+    kb.write(out)
 
-    sentence_cache += key
+    sentence_cache += out
 
     sentence_candidate = []
     for sentence_item in messages:
@@ -94,21 +77,21 @@ while True:
             sentence_candidate.append(sentence_item)
 
     if not sentence_candidate:
-        continue
+        return
 
     sentence_candidate.sort(key=len, reverse=True)
     pick = random.choice(sentence_candidate)
 
     if not profanityinclude and any(k in pick.lower() for k in keywords):
-        print("PROFANITY FOUND! RANDOM PICKING ANOTHER MESSAGE")
         pick2 = random.choice(sentence_candidate)
-        print(f"Picked sentence: {pick2}")
         if not any(k in pick2.lower() for k in keywords):
             pick = pick2
         else:
-            print("Hey... atleast we tried to pick again!")
             pick = pick2
 
     kb.write(pick[len(sentence_cache):])
     kb.press_and_release("enter")
     sentence_cache = ""
+
+kb.hook(on_key, suppress=True)
+kb.wait()
