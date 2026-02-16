@@ -41,6 +41,11 @@ def on_key(event):
 
     key = event.name
 
+    if key == "enter":
+        kb.press_and_release("enter")
+        return
+
+
     if key != "space" and (len(key) > 1):
         return
 
